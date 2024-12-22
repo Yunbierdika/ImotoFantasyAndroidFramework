@@ -118,16 +118,14 @@ public class MainActivity extends AppCompatActivity {
         // 手动导入存档文件夹
         Button saveFileImportBtn = findViewById(R.id.import_save_btn);
         saveFileImportBtn.setOnClickListener(v -> MakeAlertDialog.show(MainActivity.this, "警告", "是否确定导入存档？确定请选择存档文件夹，导入存档后需要重启游戏。",
-                "取消", null,
+                "取消", (dialogInterface, i) -> dialogInterface.dismiss(),
                 "确定", (dialogInterface, i) -> SaveFileImporter.startFolderPicker(this)));
 
         // 删除游戏私有目录内（/data/data/game.imotofantasy/）的存档
         Button saveFileDeleterBtn = findViewById(R.id.delete_save_btn);
         saveFileDeleterBtn.setOnClickListener(v -> MakeAlertDialog.show(MainActivity.this, "警告", "是否确定删除游戏的存档文件？删除后需要重启游戏。",
-                "取消", null,
-                "确定", (dialogInterface, i) -> {
-                    SaveFileDeleter.deleteSaveFiles(context);
-                })
+                "取消", (dialogInterface, i) -> dialogInterface.dismiss(),
+                "确定", (dialogInterface, i) -> SaveFileDeleter.deleteSaveFiles(context))
         );
     }
 
