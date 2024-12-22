@@ -1,6 +1,8 @@
 package game.imotofantasy;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,12 +14,21 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import java.io.File;
+
+import game.imotofantasy.utils.MakeAlertDialog;
+import game.imotofantasy.utils.SaveFileDeleter;
+import game.imotofantasy.utils.SaveFileExporter;
+import game.imotofantasy.utils.SaveFileImporter;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -88,5 +99,44 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("WebView", "Error: " + error.getDescription());
             }
         });
+
+        Context context = getBaseContext();
+
+        // 获取私有目录中的存档文件夹：/Android/data/game.imotofantasy/file/leveldb
+        File targetSaveDir = new File(context.getExternalFilesDir(null), "leveldb");
+
+        // 判断游戏私有目录（Android/data/game.imotofantasy）是否存在，是否可创建文件夹
+        if (!targetSaveDir.exists() && !targetSaveDir.mkdirs()) {
+            System.err.println("Failed to create save directory: " + targetSaveDir.getAbsolutePath());
+            return;
+        }
+
+        // 导出位置：Android/data/game.imotofantasy/file/leveldb/
+        Button saveFileExportBtn = findViewById(R.id.export_save_btn);
+        saveFileExportBtn.setOnClickListener(v -> SaveFileExporter.exportSaveFiles(context));
+
+        // 手动导入存档文件夹
+        Button saveFileImportBtn = findViewById(R.id.import_save_btn);
+        saveFileImportBtn.setOnClickListener(v -> MakeAlertDialog.show(MainActivity.this, "警告", "是否确定导入存档？确定请选择存档文件夹，导入存档后需要重启游戏。",
+                "取消", null,
+                "确定", (dialogInterface, i) -> SaveFileImporter.startFolderPicker(this)));
+
+        // 删除游戏私有目录内（/data/data/game.imotofantasy/）的存档
+        Button saveFileDeleterBtn = findViewById(R.id.delete_save_btn);
+        saveFileDeleterBtn.setOnClickListener(v -> MakeAlertDialog.show(MainActivity.this, "警告", "是否确定删除游戏的存档文件？删除后需要重启游戏。",
+                "取消", null,
+                "确定", (dialogInterface, i) -> {
+                    SaveFileDeleter.deleteSaveFiles(context);
+                    finish();
+                })
+        );
+    }
+
+    // 用于接收导入存档时选择的文件夹事件结果
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // 调用导入存档方法
+        SaveFileImporter.handleFolderSelection(this, requestCode, resultCode, data);
     }
 }
