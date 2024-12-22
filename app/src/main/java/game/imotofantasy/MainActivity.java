@@ -127,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
                 "取消", null,
                 "确定", (dialogInterface, i) -> {
                     SaveFileDeleter.deleteSaveFiles(context);
-                    finish();
                 })
         );
     }

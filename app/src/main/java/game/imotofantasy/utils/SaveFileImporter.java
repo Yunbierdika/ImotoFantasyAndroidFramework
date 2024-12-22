@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Objects;
 
 public class SaveFileImporter {
     private static final int REQUEST_CODE_PICK_FOLDER = 1001;
@@ -97,7 +98,7 @@ public class SaveFileImporter {
     // Helper method to delete a directory and its contents
     private static boolean deleteDirectory(File directory) {
         if (directory.isDirectory()) {
-            for (File child : directory.listFiles()) {
+            for (File child : Objects.requireNonNull(directory.listFiles())) {
                 if (!deleteDirectory(child)) {
                     return false;
                 }
