@@ -17,9 +17,13 @@ public class SaveFileExporter {
         // 获取私有目录中的存档文件夹：/Android/data/game.imotofantasy/file/leveldb
         File targetSaveDir = new File(context.getExternalFilesDir(null), "leveldb");
 
-        // 判断游戏私有目录（Android/data/game.imotofantasy）是否存在，是否可创建文件夹
-        if (!targetSaveDir.exists() && !targetSaveDir.mkdirs()) {
-            System.err.println("Failed to create save directory: " + targetSaveDir.getAbsolutePath());
+        // 删除已经保存的存档
+        if (targetSaveDir.exists()) {
+            deleteDirectory(targetSaveDir);
+        }
+
+        if (!targetSaveDir.mkdirs()) {
+            Toast.makeText(context, "重建 leveldb 文件夹失败！", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -37,7 +41,7 @@ public class SaveFileExporter {
                     }
                 }
             }
-            Toast.makeText(context, "存档文件已导出到'Android/data/game.imotofantasy/file/leveldb'目录下。", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "存档文件导出成功！", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -50,5 +54,16 @@ public class SaveFileExporter {
                 fos.write(buffer, 0, length);
             }
         }
+    }
+
+    private static boolean deleteDirectory(File directory) {
+        if (directory.isDirectory()) {
+            for (File child : Objects.requireNonNull(directory.listFiles())) {
+                if (!deleteDirectory(child)) {
+                    return false;
+                }
+            }
+        }
+        return directory.delete();
     }
 }

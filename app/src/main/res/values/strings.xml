@@ -1,6 +1,7 @@
 <resources>
-    <string name="app_name">ImotoFantasty</string>
+    <string name="app_name">妹！生活～幻想～</string>
     <string name="export_save_file">导出存档</string>
     <string name="import_save_file">导入存档</string>
     <string name="delete_save_file">删除存档</string>
+    <string name="show_info_tip">关于信息</string>
 </resources>

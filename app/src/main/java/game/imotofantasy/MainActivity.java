@@ -113,20 +113,36 @@ public class MainActivity extends AppCompatActivity {
 
         // 导出位置：Android/data/game.imotofantasy/file/leveldb/
         Button saveFileExportBtn = findViewById(R.id.export_save_btn);
-        saveFileExportBtn.setOnClickListener(v -> SaveFileExporter.exportSaveFiles(context));
+        saveFileExportBtn.setOnClickListener(v -> MakeAlertDialog.show(MainActivity.this, "导出存档",
+                "存档将导出到：'Android/data/game.imotofantasy/file/'目录下",
+                "取消操作", (dialog, i) -> dialog.dismiss(),
+                "确定导出存档", (dialogInterface, i) -> SaveFileExporter.exportSaveFiles(context)
+        ));
 
         // 手动导入存档文件夹
         Button saveFileImportBtn = findViewById(R.id.import_save_btn);
-        saveFileImportBtn.setOnClickListener(v -> MakeAlertDialog.show(MainActivity.this, "警告", "是否确定导入存档？确定请选择存档文件夹，导入存档后需要重启游戏。",
-                "取消", (dialogInterface, i) -> dialogInterface.dismiss(),
-                "确定", (dialogInterface, i) -> SaveFileImporter.startFolderPicker(this)));
+        saveFileImportBtn.setOnClickListener(v -> MakeAlertDialog.show(MainActivity.this, "导入存档", "此操作会删除当前游戏存档并加载选择的存档，是否确定？导入完毕后需重启游戏。",
+                "取消操作", (dialogInterface, i) -> dialogInterface.dismiss(),
+                "确定并选择需要导入的存档", (dialogInterface, i) -> SaveFileImporter.startFolderPicker(this)
+        ));
 
         // 删除游戏私有目录内（/data/data/game.imotofantasy/）的存档
         Button saveFileDeleterBtn = findViewById(R.id.delete_save_btn);
-        saveFileDeleterBtn.setOnClickListener(v -> MakeAlertDialog.show(MainActivity.this, "警告", "是否确定删除游戏的存档文件？删除后需要重启游戏。",
-                "取消", (dialogInterface, i) -> dialogInterface.dismiss(),
-                "确定", (dialogInterface, i) -> SaveFileDeleter.deleteSaveFiles(context))
-        );
+        saveFileDeleterBtn.setOnClickListener(v -> MakeAlertDialog.show(MainActivity.this, "删除存档", "此操作会删除当前游戏存档，是否确定？删除完毕后需重启游戏。",
+                "取消操作", (dialogInterface, i) -> dialogInterface.dismiss(),
+                "确定删除存档", (dialogInterface, i) -> SaveFileDeleter.deleteSaveFiles(context)
+        ));
+
+        // 关于信息按钮
+        Button showInfoBtn = findViewById(R.id.show_info_btn);
+        showInfoBtn.setOnClickListener(v -> MakeAlertDialog.show(MainActivity.this, "提示信息",
+                "游戏作者：いぬすく\n" +
+                        "游戏移植：HBOX.JP\n" +
+                        "本项目仅供学习交流严禁用于商业用途。\n" +
+                        "本项目完全免费，喜欢请购买正版！",
+                "好的", (dialogInterface, i) -> dialogInterface.dismiss(),
+                "明白", (dialogInterface, i) -> dialogInterface.dismiss()
+        ));
     }
 
     // 用于接收导入存档时选择的文件夹事件结果
