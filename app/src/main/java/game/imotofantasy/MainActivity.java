@@ -17,6 +17,7 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -151,5 +152,24 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         // 调用导入存档方法
         SaveFileImporter.handleFolderSelection(this, requestCode, resultCode, data);
+    }
+
+    // 保存 WebView 状态，应对切换应用时刷新问题
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // 获取布局文件中的WebView控件
+        WebView gameWebview = findViewById(R.id.game_webview);
+        // 保存状态
+        gameWebview.saveState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        // 获取布局文件中的WebView控件
+        WebView gameWebview = findViewById(R.id.game_webview);
+        // 恢复状态
+        gameWebview.restoreState(savedInstanceState);
     }
 }
