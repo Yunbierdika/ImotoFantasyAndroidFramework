@@ -536,8 +536,9 @@ var utakata = utakata || (utakata = {})
     var data = localStorage.getItem(key)
     return LZString.decompressFromBase64(data)*/
 
-    let data = AndroidBridge.loadGameData('common.rpgsave')
-    return LZString.decompressFromBase64(data)
+    // let data = AndroidBridge.loadGameData('common.rpgsave')
+    // return LZString.decompressFromBase64(data)
+    return AndroidBridge.loadGameData('common.rpgsave')
   }
 
   // save methods ---------------------------------------------------------------
@@ -565,9 +566,10 @@ var utakata = utakata || (utakata = {})
         var data = LZString.compressToBase64(json);
         localStorage.setItem(key, data);*/
 
-    let data = LZString.compressToBase64(json)
+    // let data = LZString.compressToBase64(json)
     // AndroidBridge.logEvent('saveCommonSave: ' + data)
-    AndroidBridge.saveGameData(data, 'common.rpgsave')
+    // AndroidBridge.saveGameData(data, 'common.rpgsave')
+    AndroidBridge.saveGameData(json, 'common.rpgsave')
   }
 
   //check exists ----------------------------------------------------------------

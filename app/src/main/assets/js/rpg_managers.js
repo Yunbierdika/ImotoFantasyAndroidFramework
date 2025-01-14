@@ -249,7 +249,6 @@ DataManager.setupEventTest = function () {
 DataManager.loadGlobalInfo = function () {
   var json
   try {
-    // AndroidBridge.logEvent('bbbb' + new Error().stack)
     json = StorageManager.load(0)
   } catch (e) {
     console.error(e)
@@ -392,7 +391,7 @@ DataManager.saveGameWithoutRescue = function (savefileId) {
 }
 
 DataManager.loadGameWithoutRescue = function (savefileId) {
-  var globalInfo = this.loadGlobalInfo()
+  // var globalInfo = this.loadGlobalInfo()
   if (this.isThisGameFile(savefileId)) {
     var json = StorageManager.load(savefileId)
     this.createGameObjects()
@@ -744,7 +743,7 @@ StorageManager.removeLocalFile = function (savefileId) {
 
 StorageManager.saveToWebStorage = function (savefileId, json) {
   //   var key = this.webStorageKey(savefileId)
-  var data = LZString.compressToBase64(json)
+  //   var data = LZString.compressToBase64(json)
   //   localStorage.setItem(key, data)
 
   let name = ''
@@ -756,7 +755,7 @@ StorageManager.saveToWebStorage = function (savefileId, json) {
     name = 'file%1.rpgsave'.format(savefileId)
   }
   //   AndroidBridge.logEvent('name: ' + name)
-  AndroidBridge.saveGameData(data, name)
+  AndroidBridge.saveGameData(json, name)
 }
 
 StorageManager.loadFromWebStorage = function (savefileId) {
@@ -772,9 +771,9 @@ StorageManager.loadFromWebStorage = function (savefileId) {
   } else {
     name = 'file%1.rpgsave'.format(savefileId)
   }
-  let data = AndroidBridge.loadGameData(name)
   // AndroidBridge.logEvent(`${name}: ` + data)
-  return LZString.decompressFromBase64(data)
+  // AndroidBridge.logEvent('hook from: ' + new Error().stack)
+  return AndroidBridge.loadGameData(name)
 }
 
 StorageManager.loadFromWebStorageBackup = function (savefileId) {

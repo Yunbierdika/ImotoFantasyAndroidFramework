@@ -30,6 +30,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+
+import game.imotofantasy.utils.LZString;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -134,6 +137,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // 缓存存档数据
+    private final HashMap<String, String> cache = new HashMap<>();
+
     // 安卓和JavaScript接口的通信事件
     public class WebAppInterface {
 
@@ -161,13 +167,23 @@ public class MainActivity extends AppCompatActivity {
         // 将发送过来的存档保存到指定目录
         @JavascriptInterface
         public void saveGameData(String saveData, String fileName) {
+            // 如果缓存中有旧存档数据则删除
+            if (cache.containsKey(fileName)) {
+                //Log.d("WebView", "Cache found old save file: " + fileName);
+                cache.remove(fileName);
+                cache.put(fileName, saveData);
+            }
+
             // 目录：Android/data/包名/file/save
             File saveDir = getSaveDir();
             File saveFile = new File(saveDir, fileName);
 
+            // 使用 LZString 加密压缩
+            String compressed = LZString.compressToBase64(saveData);
+
             // 将存档数据写入文件
             try (FileOutputStream fos = new FileOutputStream(saveFile)) {
-                fos.write(saveData.getBytes());
+                fos.write(compressed.getBytes());
             } catch (IOException e) {
                  Log.e("WebView", "Failed to save game data", e);
             }
@@ -176,17 +192,37 @@ public class MainActivity extends AppCompatActivity {
         // 加载存档，返回值为存档文件里的内容
         @JavascriptInterface
         public String loadGameData(String fileName) {
+            // 如果缓存中已有数据，直接返回
+            if (cache.containsKey(fileName)) {
+                //Log.d("WebView", "Cache hit for file: " + fileName);
+                return cache.get(fileName);
+            }
+
+            // 文件读取和解码
             File saveDir = getSaveDir();
             File saveFile = new File(saveDir, fileName);
+            // 判断文件是否存在
+            if (!saveFile.exists()) return null;
             StringBuilder stringBuilder = new StringBuilder();
 
             try (FileInputStream fis = new FileInputStream(saveFile);
                  BufferedReader reader = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    stringBuilder.append(line).append("\n");
+                    stringBuilder.append(line);
                 }
-                return stringBuilder.toString();
+
+                // 读取的 Base64 数据
+                String base64Data = stringBuilder.toString().trim();
+
+                // 使用 LZString 解码
+                String decodedData = LZString.decompressFromBase64(base64Data);
+
+                // 将解码后的数据存入缓存
+                cache.put(fileName, decodedData);
+
+                //Log.d("WebView", "Loaded and cached file: " + fileName);
+                return decodedData;
             } catch (IOException e) {
                 Log.e("WebView", "Failed to load game data", e);
                 return null;
