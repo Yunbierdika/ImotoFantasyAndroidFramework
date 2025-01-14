@@ -115,17 +115,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("WebView", "Page loaded: " + url);
 
                 // 再次应用全屏设置
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                    WindowInsetsController controller = getWindow().getInsetsController();
-                    if (controller != null) {
-                        controller.hide(WindowInsetsCompat.Type.systemBars());
-                    }
-                } else {
-                    getWindow().getDecorView().setSystemUiVisibility(
-                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    );
+                WindowInsetsController controller = getWindow().getInsetsController();
+                if (controller != null) {
+                    controller.hide(WindowInsetsCompat.Type.systemBars());
                 }
             }
 
