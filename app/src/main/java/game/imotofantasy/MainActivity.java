@@ -46,8 +46,9 @@ public class MainActivity extends AppCompatActivity {
 
         // 设置全屏模式
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        // 保持屏幕常亮
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
@@ -98,11 +99,11 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setAllowFileAccessFromFileURLs(true);
         // 允许从文件URL访问跨域资源
         webSettings.setAllowUniversalAccessFromFileURLs(true);
+        // 设置缓存模式为本地缓存模式
+        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ONLY);
 
         // 使用硬件加速
         gameWebview.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        // 清除WebView的缓存
-        gameWebview.clearCache(true);
         // 添加JavaScript接口
         gameWebview.addJavascriptInterface(new WebAppInterface(), "AndroidBridge");
         // 加载指定的本地HTML文件
