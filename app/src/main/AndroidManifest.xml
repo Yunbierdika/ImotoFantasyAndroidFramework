@@ -11,8 +11,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ImotoFantasty"
-        android:hardwareAccelerated="true"
-        tools:targetApi="31">
+        android:hardwareAccelerated="true">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTask"
