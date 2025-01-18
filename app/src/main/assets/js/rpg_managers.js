@@ -246,7 +246,15 @@ DataManager.setupEventTest = function () {
   $gamePlayer.setTransparent(false)
 }
 
+// 缓存全局存档
+DataManager._globalInfoCache = []
+
 DataManager.loadGlobalInfo = function () {
+  if (this._globalInfoCache.length !== 0) {
+    // console.log('Using cached global info')
+    return this._globalInfoCache
+  }
+
   var json
   try {
     json = StorageManager.load(0)
@@ -261,6 +269,7 @@ DataManager.loadGlobalInfo = function () {
         delete globalInfo[i]
       }
     }
+    this._globalInfoCache = globalInfo
     return globalInfo
   } else {
     return []
@@ -269,6 +278,9 @@ DataManager.loadGlobalInfo = function () {
 
 DataManager.saveGlobalInfo = function (info) {
   StorageManager.save(0, JSON.stringify(info))
+  if (this._globalInfoCache.length !== 0) {
+    this._globalInfoCache = []
+  }
 }
 
 DataManager.isThisGameFile = function (savefileId) {
@@ -746,14 +758,13 @@ StorageManager.saveToWebStorage = function (savefileId, json) {
   //   var data = LZString.compressToBase64(json)
   //   localStorage.setItem(key, data)
 
-  let name = ''
-  if (savefileId < 0) {
-    name = 'config.rpgsave'
-  } else if (savefileId === 0) {
-    name = 'global.rpgsave'
-  } else {
-    name = 'file%1.rpgsave'.format(savefileId)
-  }
+  const name =
+    savefileId < 0
+      ? 'config.rpgsave'
+      : savefileId === 0
+      ? 'global.rpgsave'
+      : `file${savefileId}.rpgsave`
+
   //   AndroidBridge.logEvent('name: ' + name)
   AndroidBridge.saveGameData(json, name)
 }
@@ -763,16 +774,15 @@ StorageManager.loadFromWebStorage = function (savefileId) {
   var data = localStorage.getItem(key)
   return LZString.decompressFromBase64(data)*/
 
-  let name = ''
-  if (savefileId < 0) {
-    name = 'config.rpgsave'
-  } else if (savefileId === 0) {
-    name = 'global.rpgsave'
-  } else {
-    name = 'file%1.rpgsave'.format(savefileId)
-  }
+  const name =
+    savefileId < 0
+      ? 'config.rpgsave'
+      : savefileId === 0
+      ? 'global.rpgsave'
+      : `file${savefileId}.rpgsave`
+
   // AndroidBridge.logEvent(`${name}: ` + data)
-  // AndroidBridge.logEvent('hook from: ' + new Error().stack)
+  // AndroidBridge.logEvent(`${name}: ` + new Error().stack)
   return AndroidBridge.loadGameData(name)
 }
 
@@ -791,14 +801,13 @@ StorageManager.webStorageExists = function (savefileId) {
   //   var key = this.webStorageKey(savefileId)
   //   return !!localStorage.getItem(key)
 
-  let name = ''
-  if (savefileId < 0) {
-    name = 'config.rpgsave'
-  } else if (savefileId === 0) {
-    name = 'global.rpgsave'
-  } else {
-    name = 'file%1.rpgsave'.format(savefileId)
-  }
+  const name =
+    savefileId < 0
+      ? 'config.rpgsave'
+      : savefileId === 0
+      ? 'global.rpgsave'
+      : `file${savefileId}.rpgsave`
+
   return AndroidBridge.existsGameSave(name)
 }
 
