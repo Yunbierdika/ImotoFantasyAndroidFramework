@@ -1,12 +1,13 @@
 package game.imotofantasy;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
+import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
@@ -21,7 +22,6 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -36,6 +36,8 @@ import game.imotofantasy.utils.LZString;
 
 public class MainActivity extends AppCompatActivity {
 
+    private WebView gameWebview;
+
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,9 +46,6 @@ public class MainActivity extends AppCompatActivity {
         // 动态设置屏幕方向为横屏
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
 
-        // 设置全屏模式
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-
         // 保持屏幕常亮
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -54,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // 获取布局文件中的WebView控件
-        WebView gameWebview = findViewById(R.id.game_webview);
+        gameWebview = findViewById(R.id.game_webview);
 
         // 去除系统UI对游戏界面的影响
         ViewCompat.setOnApplyWindowInsetsListener(gameWebview, (v, insets) -> {
@@ -105,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         // 使用硬件加速
         gameWebview.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         // 添加JavaScript接口
-        gameWebview.addJavascriptInterface(new WebAppInterface(), "AndroidBridge");
+        gameWebview.addJavascriptInterface(new WebAppInterface(this), "AndroidBridge");
         // 加载指定的本地HTML文件
         gameWebview.loadUrl(file_url);
         // 防止外部浏览器打开链接
@@ -114,12 +113,6 @@ public class MainActivity extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 // 页面加载完成时的回调
                 Log.d("WebView", "Page loaded: " + url);
-
-                // 再次应用全屏设置
-                WindowInsetsController controller = getWindow().getInsetsController();
-                if (controller != null) {
-                    controller.hide(WindowInsetsCompat.Type.systemBars());
-                }
             }
 
             @Override
@@ -135,6 +128,12 @@ public class MainActivity extends AppCompatActivity {
 
     // 安卓和JavaScript接口的通信事件
     public class WebAppInterface {
+
+        private final Activity activity;
+
+        public WebAppInterface(Activity activity) {
+            this.activity = activity;
+        }
 
         // 获取存档目录
         private File getSaveDir() {
@@ -154,7 +153,9 @@ public class MainActivity extends AppCompatActivity {
         // 使结束游戏按钮功能可用
         @JavascriptInterface
         public void closeGame() {
-            finish();
+            activity.runOnUiThread(() -> {
+                activity.finish(); // 调用 Activity 的 finish() 方法
+            });
         }
 
         // 将发送过来的存档保存到指定目录
@@ -242,41 +243,73 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // 视图重新聚焦时执行全屏模式
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            WindowInsetsController controller = getWindow().getInsetsController();
+            if (controller != null) {
+                // 隐藏顶部状态栏、底部导航栏
+                controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+                // 设置系统栏的行为，通过滑动手势临时显示系统栏
+                controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            }
+        }
+    }
+
     // 避免锁屏时WebView自动刷新导致存档丢失
     @Override
     protected void onPause() {
         super.onPause();
-        // 获取布局文件中的WebView控件
-        WebView gameWebview = findViewById(R.id.game_webview);
-        gameWebview.onPause();  // 暂停 WebView
-        gameWebview.pauseTimers();  // 暂停 WebView 中的定时器
+        if (gameWebview != null) {
+            gameWebview.onPause();  // 暂停 WebView
+            gameWebview.pauseTimers();  // 暂停 WebView 中的定时器
+        }
     }
 
     // 避免锁屏时WebView自动刷新导致存档丢失
     @Override
     protected void onResume() {
         super.onResume();
-        WebView gameWebview = findViewById(R.id.game_webview);
-        gameWebview.onResume();  // 恢复 WebView
-        gameWebview.resumeTimers();  // 恢复 WebView 中的定时器
+        if (gameWebview != null) {
+            gameWebview.onResume();  // 恢复 WebView
+            gameWebview.resumeTimers();  // 恢复 WebView 中的定时器
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (gameWebview != null) {
+            // 停止加载内容
+            gameWebview.stopLoading();
+            gameWebview.loadUrl("about:blank");
+            // 清理历史和资源
+            gameWebview.clearHistory();
+            gameWebview.removeAllViews();
+            // 销毁 WebView
+            gameWebview.destroy();
+            gameWebview = null; // 避免内存泄漏
+        }
+        super.onDestroy();
     }
 
     // 保存 WebView 状态，应对切换应用时刷新问题
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        // 获取布局文件中的WebView控件
-        WebView gameWebview = findViewById(R.id.game_webview);
-        // 保存状态
-        gameWebview.saveState(outState);
+        if (gameWebview != null) {
+            // 保存状态
+            gameWebview.saveState(outState);
+        }
     }
 
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        // 获取布局文件中的WebView控件
-        WebView gameWebview = findViewById(R.id.game_webview);
-        // 恢复状态
-        gameWebview.restoreState(savedInstanceState);
+        if (gameWebview != null) {
+            // 恢复状态
+            gameWebview.restoreState(savedInstanceState);
+        }
     }
 }
