@@ -1,4 +1,4 @@
-# ImotoFantasyAndroidFramework2
+# ImotoFantasyAndroidFramework
 
 ## 可用于打包 RPGM 版的妹相随为安卓 APK
 
