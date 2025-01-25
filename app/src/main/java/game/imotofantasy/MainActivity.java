@@ -78,49 +78,54 @@ public class MainActivity extends AppCompatActivity {
         // 将 callback 添加到 OnBackPressedDispatcher
         getOnBackPressedDispatcher().addCallback(this, callback);
 
-        // 设置加载的本地HTML文件的URL
-        final String file_url = "file:///android_asset/index.html";
+        // 仅在savedInstanceState为空时加载初始URL
+        if (savedInstanceState == null) {
 
-        WebSettings webSettings = gameWebview.getSettings();
+            // 设置加载的本地HTML文件的URL
+            final String file_url = "file:///android_asset/index.html";
 
-        // 启用WebView中的JavaScript支持
-        webSettings.setJavaScriptEnabled(true);
-        // 启用DOM存储支持
-        webSettings.setDomStorageEnabled(true);
-        // 允许媒体内容在没有用户手势的情况下自动播放
-        webSettings.setMediaPlaybackRequiresUserGesture(false);
-        // 允许WebView适应屏幕宽度（启用视口支持）
-        webSettings.setUseWideViewPort(true);
-        webSettings.setLoadWithOverviewMode(true);
-        // 允许WebView访问本地文件
-        webSettings.setAllowFileAccess(true);
-        // 允许从本地文件的URL中访问其他文件
-        webSettings.setAllowFileAccessFromFileURLs(true);
-        // 允许从文件URL访问跨域资源
-        webSettings.setAllowUniversalAccessFromFileURLs(true);
-        // 设置缓存模式为本地缓存模式
-        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ONLY);
+            WebSettings webSettings = gameWebview.getSettings();
 
-        // 使用硬件加速
-        gameWebview.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        // 添加JavaScript接口
-        gameWebview.addJavascriptInterface(new WebAppInterface(this), "AndroidBridge");
-        // 加载指定的本地HTML文件
-        gameWebview.loadUrl(file_url);
-        // 防止外部浏览器打开链接
-        gameWebview.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                // 页面加载完成时的回调
-                Log.d("WebView", "Page loaded: " + url);
-            }
+            // 启用WebView中的JavaScript支持
+            webSettings.setJavaScriptEnabled(true);
+            // 启用DOM存储支持
+            webSettings.setDomStorageEnabled(true);
+            // 允许媒体内容在没有用户手势的情况下自动播放
+            webSettings.setMediaPlaybackRequiresUserGesture(false);
+            // 允许WebView适应屏幕宽度（启用视口支持）
+            webSettings.setUseWideViewPort(true);
+            webSettings.setLoadWithOverviewMode(true);
+            // 允许WebView访问本地文件
+            webSettings.setAllowFileAccess(true);
+            // 允许从本地文件的URL中访问其他文件
+            webSettings.setAllowFileAccessFromFileURLs(true);
+            // 允许从文件URL访问跨域资源
+            webSettings.setAllowUniversalAccessFromFileURLs(true);
+            // 设置缓存模式为本地缓存模式
+            webSettings.setCacheMode(WebSettings.LOAD_CACHE_ONLY);
 
-            @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                // 捕捉加载错误
-                Log.e("WebView", "Error: " + error.getDescription());
-            }
-        });
+            // 使用硬件加速
+            gameWebview.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            // 添加JavaScript接口
+            gameWebview.addJavascriptInterface(new WebAppInterface(this), "AndroidBridge");
+
+            // 加载指定的本地HTML文件
+            gameWebview.loadUrl(file_url);
+            // 防止外部浏览器打开链接
+            gameWebview.setWebViewClient(new WebViewClient() {
+                @Override
+                public void onPageFinished(WebView view, String url) {
+                    // 页面加载完成时的回调
+                    Log.d("WebView", "Page loaded: " + url);
+                }
+
+                @Override
+                public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                    // 捕捉加载错误
+                    Log.e("WebView", "Error: " + error.getDescription());
+                }
+            });
+        }
     }
 
     // 缓存存档数据
