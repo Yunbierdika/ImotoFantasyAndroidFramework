@@ -14,22 +14,27 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import game.imotofantasy.utils.LZString;
+import game.imotofantasy.utils.WriteLogToLocal;
 
 public class MyJavaScriptInterface {
     private final Activity activity;
 
+    // 日志输出实例
+    private final WriteLogToLocal writeLogToLocal;
+
     // 缓存存档数据
     private final HashMap<String, String> cache = new HashMap<>();
 
-    public MyJavaScriptInterface(Activity activity) {
+    public MyJavaScriptInterface(Activity activity, WriteLogToLocal writeLogToLocal) {
         this.activity = activity;
+        this.writeLogToLocal = writeLogToLocal;
     }
 
     // 获取存档目录
     private File getSaveDir() {
         File saveDir = new File(activity.getExternalFilesDir(null), "save");
         if (!saveDir.exists() && !saveDir.mkdirs()) {
-            Log.e("WebView", "Failed to create save directory: " + saveDir.getAbsolutePath());
+            writeLogToLocal.logError("Failed to create save directory: " + saveDir.getAbsolutePath());
         }
         return saveDir;
     }
@@ -68,7 +73,7 @@ public class MyJavaScriptInterface {
         try (FileOutputStream fos = new FileOutputStream(saveFile)) {
             fos.write(compressed.getBytes());
         } catch (IOException e) {
-            Log.e("WebView", "Failed to save game data", e);
+            writeLogToLocal.logError("Failed to save game data：" + e.getMessage(), e);
         }
     }
 
@@ -107,7 +112,7 @@ public class MyJavaScriptInterface {
             //Log.d("WebView", "Loaded and cached file: " + fileName);
             return decodedData;
         } catch (IOException e) {
-            Log.e("WebView", "Failed to load game data", e);
+            writeLogToLocal.logError("Failed to load game data" + e.getMessage(), e);
             return null;
         }
     }
@@ -127,7 +132,7 @@ public class MyJavaScriptInterface {
         File saveFile = new File(targetDir, "common.rpgsave");
 
         if (saveFile.exists() && !saveFile.delete()) {
-            Log.e("WebView", "Failed to delete common save: " + saveFile.getAbsolutePath());
+            writeLogToLocal.logError("Failed to delete common save: " + saveFile.getAbsolutePath());
         }
     }
 }

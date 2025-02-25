@@ -6,13 +6,13 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -23,9 +23,15 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 
+import game.imotofantasy.utils.WriteLogToLocal;
+
 public class MainActivity extends AppCompatActivity {
 
+    // WebView实例
     private WebView gameWebview;
+
+    // 日志输出实例
+    private WriteLogToLocal writeLogToLocal;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -70,6 +76,9 @@ public class MainActivity extends AppCompatActivity {
         // 仅在savedInstanceState为空时加载初始URL
         if (savedInstanceState == null) {
 
+            // 初始化日志输出实例
+            writeLogToLocal = new WriteLogToLocal(this);
+
             // 设置加载的本地HTML文件的URL
             final String file_url = "file:///android_asset/index.html";
 
@@ -106,21 +115,24 @@ public class MainActivity extends AppCompatActivity {
             // 使用硬件加速
             gameWebview.setLayerType(View.LAYER_TYPE_HARDWARE, null);
             // 添加JavaScript接口
-            gameWebview.addJavascriptInterface(new MyJavaScriptInterface(this), "AndroidBridge");
+            gameWebview.addJavascriptInterface(new MyJavaScriptInterface(this, writeLogToLocal), "AndroidBridge");
             // 加载指定的本地HTML文件
             gameWebview.loadUrl(file_url);
             // 防止外部浏览器打开链接
             gameWebview.setWebViewClient(new WebViewClient() {
                 @Override
-                public void onPageFinished(WebView view, String url) {
-                    // 页面加载完成时的回调
-                    Log.d("WebView", "Page loaded: " + url);
+                public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                    super.onReceivedError(view, request, error);
+                    // 捕捉加载错误
+                    String errorMessage = "WebView Error: " + error.getDescription() + " URL: " + request.getUrl();
+                    writeLogToLocal.logError(errorMessage);
                 }
 
                 @Override
-                public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                    // 捕捉加载错误
-                    Log.e("WebView", "Error: " + error.getDescription());
+                public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+                    super.onReceivedHttpError(view, request, errorResponse);
+                    String errorMessage = "HTTP Error: " + errorResponse.getStatusCode() + " URL: " + request.getUrl();
+                    writeLogToLocal.logError(errorMessage);
                 }
             });
         }
@@ -185,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
             gameWebview.destroy();
             gameWebview = null; // 避免内存泄漏
         }
+        if (writeLogToLocal != null) writeLogToLocal = null;
         super.onDestroy();
     }
 
