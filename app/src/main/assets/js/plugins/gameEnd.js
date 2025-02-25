@@ -41,8 +41,9 @@
     if (StorageManager.isLocalMode()) {
       window.close()
     } else {
-      AndroidBridge.closeGame() // 调用 Java 接口关闭游戏
       // window.open('about:blank', '_self').close()
+      window.close()
+      AndroidBridge.closeGame() // 调用 Java 接口关闭游戏
     }
   }
 })()
